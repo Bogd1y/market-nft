@@ -3,8 +3,21 @@
 pragma solidity ^0.8.20;
 
 import "./NFT.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
+
+interface IWETH is IERC20 {
+  function deposit() external payable;
+
+  function withdraw(uint256 _amount) external;
+}
 
 contract Market {
+
+  event CreateSellOrder(address _address, uint256 _tokenId, uint _desiredPrice, address _who);
+  event CreateBuyOrder(uint256 _orderId, uint _desiredPrice, address who);
+  event DirectBuy(uint256 _orderId, address _who);
+  event CancelSell(uint256 _orderId);
+  event BuyOrderFulfill(uint256 _orderId ); // buyOrderId 
 
   enum Status {
     canceled,
@@ -55,17 +68,21 @@ contract Market {
     require(msg.sender == admin, "Not him");
     blackList[_address] = true;
   }
-  /// @notice create sell order
+
+  /// @notice create sell order (need approve for THAT token id)
   function createSellOrder(address _address, uint256 _tokenId, uint _desiredPrice) public {
 
     require(checkNFT(_address), "NFT not allowed");
-    IERC721 nft = IERC721(_address);
-    require(nft.ownerOf(_tokenId) == msg.sender, "You don't own this NFT");
 
-    nft.transferFrom(msg.sender, address(this), _tokenId);
+    IERC721 nft = IERC721(_address);
+
+    require(nft.ownerOf(_tokenId) == msg.sender, "You don't own this NFT");
+    require(nft.getApproved(_tokenId) == address(this), "Not approved");
 
     sellOrders[nextOrderId] = Order(_desiredPrice, nextOrderId, Status.pending, _tokenId, _address, msg.sender);
     nextOrderId++;
+
+    emit CreateSellOrder(_address, _tokenId, _desiredPrice, msg.sender);
   }
 
   /// @notice buy buy sellOrder - closes sellOrder AND all buyOrders to that token
@@ -74,12 +91,15 @@ contract Market {
     require(msg.value >= sellOrders[_orderId].desiredPrice, "Where is money?");
 
     IERC721 nft = IERC721(sellOrders[_orderId].tokenAddress);
+    // IWETH weth = IWETH(sellOrders[_orderId].tokenAddress);
 
     payable(nft.ownerOf(sellOrders[_orderId].tokenId)).transfer(sellOrders[_orderId].desiredPrice);
 
-    nft.transferFrom(address(this), msg.sender, sellOrders[_orderId].tokenId);
+    nft.transferFrom(nft.ownerOf(sellOrders[_orderId].tokenId), msg.sender, sellOrders[_orderId].tokenId);
+    // weth.transferFrom(msg.sender, nft.ownerOf(sellOrders[_orderId].tokenId), sellOrders[_orderId].desiredPrice);
 
     complete(_orderId);
+    emit DirectBuy(_orderId, msg.sender);
   }
 
   /// @notice propose new price to sellOrder
@@ -90,6 +110,7 @@ contract Market {
     buyOrders[nextBuyOrderId] = BuyOrder(_desiredPrice, nextBuyOrderId, Status.pending, sellOrders[_orderId].tokenId, msg.sender, _orderId);
     buyOrdersBinded[_orderId].push(buyOrders[nextBuyOrderId]);
     nextBuyOrderId++;
+    emit CreateBuyOrder(_orderId, _desiredPrice, msg.sender);
   }
 
   /// @notice cancel sell order
@@ -99,6 +120,7 @@ contract Market {
     require(sellOrders[_orderId].orderOwner == msg.sender, "You are not owner");
 
     complete(_orderId);
+    emit CancelSell(_orderId);
   }
 
   /// @notice fulfill buy order
@@ -111,9 +133,10 @@ contract Market {
 
     payable(msg.sender).transfer(buyOrders[_orderId].desiredPrice);
 
-    nft.transferFrom(address(this), buyOrders[_orderId].orderOwner, buyOrders[_orderId].tokenId);
+    nft.transferFrom(msg.sender, buyOrders[_orderId].orderOwner, buyOrders[_orderId].tokenId);
 
     complete(buyOrders[_orderId].sellOrderId, _orderId);
+    emit BuyOrderFulfill(_orderId);
   }
 
   function complete(uint _orderId) private {

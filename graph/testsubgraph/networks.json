@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "Market": {
+      "address": "0x323955050e8861490E7c2119d4bD630C40B6E602",
+      "startBlock": 5773402
+    }
+  }
+}
