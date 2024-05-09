@@ -17,7 +17,7 @@ const CreateBuyOrder = () => {
 
   const [formData, setFormData] = useState({
     orderId: state?.orderId?.toString() || 0,
-    desiredPrice: state.desiredPrice.toString() || 0,
+    desiredPrice: state?.desiredPrice.toString() || 0,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

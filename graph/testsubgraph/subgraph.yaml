@@ -8,34 +8,31 @@ dataSources:
     name: Market
     network: sepolia
     source:
-      address: "0x323955050e8861490E7c2119d4bD630C40B6E602"
+      address: "0xDDa2BF4248fbA74F2effdD64a998d926E5071468"
       abi: Market
-      startBlock: 5773402
+      startBlock: 5867327
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - CloseStream
-        - Deposit
-        - ExecuteTransaction
-        - OpenStream
-        - Owner
-        - Withdraw
+        - BuyOrderFulfill
+        - CancelSell
+        - CreateBuyOrder
+        - CreateSellOrder
+        - DirectBuy
       abis:
         - name: Market
           file: ./abis/Market.json
       eventHandlers:
-        - event: CloseStream(indexed address)
-          handler: handleCloseStream
-        - event: Deposit(indexed address,uint256,uint256)
-          handler: handleDeposit
-        - event: ExecuteTransaction(indexed address,address,uint256,bytes,uint256,bytes32,bytes)
-          handler: handleExecuteTransaction
-        - event: OpenStream(indexed address,uint256,uint256)
-          handler: handleOpenStream
-        - event: Owner(indexed address,bool)
-          handler: handleOwner
-        - event: Withdraw(indexed address,uint256,string)
-          handler: handleWithdraw
+        - event: BuyOrderFulfill(uint256)
+          handler: handleBuyOrderFulfill
+        - event: CancelSell(uint256)
+          handler: handleCancelSell
+        - event: CreateBuyOrder(uint256,uint256,address)
+          handler: handleCreateBuyOrder
+        - event: CreateSellOrder(address,uint256,uint256,address)
+          handler: handleCreateSellOrder
+        - event: DirectBuy(uint256,address)
+          handler: handleDirectBuy
       file: ./src/market.ts

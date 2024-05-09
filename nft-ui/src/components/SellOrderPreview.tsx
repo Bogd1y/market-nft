@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { nftAbi } from '../types/nftAbi';
 import { MarketAddress, NftAddress } from '../pages/entry';
@@ -51,7 +51,7 @@ const SellOrderPreview = ({order}: {order: orderT}) => {
   
   return (
     <div className='bg-gray w-72 text-whiteish rounded-md flex-col flex'>
-      <div className="text-center">{Number(order.tokenId)} : <span className='text-bluish font-medium'>{Number(order.desiredPrice)}</span> WEI </div>
+      <div className="text-center">{Number(order.tokenId)} : <span className='text-bluish font-medium'>{Number(order?.desiredPrice)}</span> WEI </div>
       <img src={imgB64} alt="iamge" className='' />
       <div className="flex">
         <button onClick={handleBuy} className="w-2/4 text-center py-1 bg-bluish rounded-bl">Buy</button>

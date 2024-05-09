@@ -1,147 +1,120 @@
 import { newMockEvent } from "matchstick-as"
-import { ethereum, Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { ethereum, BigInt, Address } from "@graphprotocol/graph-ts"
 import {
-  CloseStream,
-  Deposit,
-  ExecuteTransaction,
-  OpenStream,
-  Owner,
-  Withdraw
+  BuyOrderFulfill,
+  CancelSell,
+  CreateBuyOrder,
+  CreateSellOrder,
+  DirectBuy
 } from "../generated/Market/Market"
 
-export function createCloseStreamEvent(to: Address): CloseStream {
-  let closeStreamEvent = changetype<CloseStream>(newMockEvent())
+export function createBuyOrderFulfillEvent(_orderId: BigInt): BuyOrderFulfill {
+  let buyOrderFulfillEvent = changetype<BuyOrderFulfill>(newMockEvent())
 
-  closeStreamEvent.parameters = new Array()
+  buyOrderFulfillEvent.parameters = new Array()
 
-  closeStreamEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
-  )
-
-  return closeStreamEvent
-}
-
-export function createDepositEvent(
-  sender: Address,
-  amount: BigInt,
-  balance: BigInt
-): Deposit {
-  let depositEvent = changetype<Deposit>(newMockEvent())
-
-  depositEvent.parameters = new Array()
-
-  depositEvent.parameters.push(
-    new ethereum.EventParam("sender", ethereum.Value.fromAddress(sender))
-  )
-  depositEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  depositEvent.parameters.push(
+  buyOrderFulfillEvent.parameters.push(
     new ethereum.EventParam(
-      "balance",
-      ethereum.Value.fromUnsignedBigInt(balance)
+      "_orderId",
+      ethereum.Value.fromUnsignedBigInt(_orderId)
     )
   )
 
-  return depositEvent
+  return buyOrderFulfillEvent
 }
 
-export function createExecuteTransactionEvent(
-  owner: Address,
-  to: Address,
-  value: BigInt,
-  data: Bytes,
-  nonce: BigInt,
-  hash: Bytes,
-  result: Bytes
-): ExecuteTransaction {
-  let executeTransactionEvent = changetype<ExecuteTransaction>(newMockEvent())
+export function createCancelSellEvent(_orderId: BigInt): CancelSell {
+  let cancelSellEvent = changetype<CancelSell>(newMockEvent())
 
-  executeTransactionEvent.parameters = new Array()
+  cancelSellEvent.parameters = new Array()
 
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
-  )
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
-  )
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value))
-  )
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("data", ethereum.Value.fromBytes(data))
-  )
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("nonce", ethereum.Value.fromUnsignedBigInt(nonce))
-  )
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("hash", ethereum.Value.fromFixedBytes(hash))
-  )
-  executeTransactionEvent.parameters.push(
-    new ethereum.EventParam("result", ethereum.Value.fromBytes(result))
-  )
-
-  return executeTransactionEvent
-}
-
-export function createOpenStreamEvent(
-  to: Address,
-  amount: BigInt,
-  frequency: BigInt
-): OpenStream {
-  let openStreamEvent = changetype<OpenStream>(newMockEvent())
-
-  openStreamEvent.parameters = new Array()
-
-  openStreamEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
-  )
-  openStreamEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  openStreamEvent.parameters.push(
+  cancelSellEvent.parameters.push(
     new ethereum.EventParam(
-      "frequency",
-      ethereum.Value.fromUnsignedBigInt(frequency)
+      "_orderId",
+      ethereum.Value.fromUnsignedBigInt(_orderId)
     )
   )
 
-  return openStreamEvent
+  return cancelSellEvent
 }
 
-export function createOwnerEvent(owner: Address, added: boolean): Owner {
-  let ownerEvent = changetype<Owner>(newMockEvent())
+export function createCreateBuyOrderEvent(
+  _orderId: BigInt,
+  _desiredPrice: BigInt,
+  who: Address
+): CreateBuyOrder {
+  let createBuyOrderEvent = changetype<CreateBuyOrder>(newMockEvent())
 
-  ownerEvent.parameters = new Array()
+  createBuyOrderEvent.parameters = new Array()
 
-  ownerEvent.parameters.push(
-    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
+  createBuyOrderEvent.parameters.push(
+    new ethereum.EventParam(
+      "_orderId",
+      ethereum.Value.fromUnsignedBigInt(_orderId)
+    )
   )
-  ownerEvent.parameters.push(
-    new ethereum.EventParam("added", ethereum.Value.fromBoolean(added))
+  createBuyOrderEvent.parameters.push(
+    new ethereum.EventParam(
+      "_desiredPrice",
+      ethereum.Value.fromUnsignedBigInt(_desiredPrice)
+    )
+  )
+  createBuyOrderEvent.parameters.push(
+    new ethereum.EventParam("who", ethereum.Value.fromAddress(who))
   )
 
-  return ownerEvent
+  return createBuyOrderEvent
 }
 
-export function createWithdrawEvent(
-  to: Address,
-  amount: BigInt,
-  reason: string
-): Withdraw {
-  let withdrawEvent = changetype<Withdraw>(newMockEvent())
+export function createCreateSellOrderEvent(
+  _address: Address,
+  _tokenId: BigInt,
+  _desiredPrice: BigInt,
+  _who: Address
+): CreateSellOrder {
+  let createSellOrderEvent = changetype<CreateSellOrder>(newMockEvent())
 
-  withdrawEvent.parameters = new Array()
+  createSellOrderEvent.parameters = new Array()
 
-  withdrawEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+  createSellOrderEvent.parameters.push(
+    new ethereum.EventParam("_address", ethereum.Value.fromAddress(_address))
   )
-  withdrawEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
+  createSellOrderEvent.parameters.push(
+    new ethereum.EventParam(
+      "_tokenId",
+      ethereum.Value.fromUnsignedBigInt(_tokenId)
+    )
   )
-  withdrawEvent.parameters.push(
-    new ethereum.EventParam("reason", ethereum.Value.fromString(reason))
+  createSellOrderEvent.parameters.push(
+    new ethereum.EventParam(
+      "_desiredPrice",
+      ethereum.Value.fromUnsignedBigInt(_desiredPrice)
+    )
+  )
+  createSellOrderEvent.parameters.push(
+    new ethereum.EventParam("_who", ethereum.Value.fromAddress(_who))
   )
 
-  return withdrawEvent
+  return createSellOrderEvent
+}
+
+export function createDirectBuyEvent(
+  _orderId: BigInt,
+  _who: Address
+): DirectBuy {
+  let directBuyEvent = changetype<DirectBuy>(newMockEvent())
+
+  directBuyEvent.parameters = new Array()
+
+  directBuyEvent.parameters.push(
+    new ethereum.EventParam(
+      "_orderId",
+      ethereum.Value.fromUnsignedBigInt(_orderId)
+    )
+  )
+  directBuyEvent.parameters.push(
+    new ethereum.EventParam("_who", ethereum.Value.fromAddress(_who))
+  )
+
+  return directBuyEvent
 }

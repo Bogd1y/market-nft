@@ -1,25 +1,23 @@
 import {
-  CloseStream as CloseStreamEvent,
-  Deposit as DepositEvent,
-  ExecuteTransaction as ExecuteTransactionEvent,
-  OpenStream as OpenStreamEvent,
-  Owner as OwnerEvent,
-  Withdraw as WithdrawEvent
+  BuyOrderFulfill as BuyOrderFulfillEvent,
+  CancelSell as CancelSellEvent,
+  CreateBuyOrder as CreateBuyOrderEvent,
+  CreateSellOrder as CreateSellOrderEvent,
+  DirectBuy as DirectBuyEvent
 } from "../generated/Market/Market"
 import {
-  CloseStream,
-  Deposit,
-  ExecuteTransaction,
-  OpenStream,
-  Owner,
-  Withdraw
+  BuyOrderFulfill,
+  CancelSell,
+  CreateBuyOrder,
+  CreateSellOrder,
+  DirectBuy
 } from "../generated/schema"
 
-export function handleCloseStream(event: CloseStreamEvent): void {
-  let entity = new CloseStream(
+export function handleBuyOrderFulfill(event: BuyOrderFulfillEvent): void {
+  let entity = new BuyOrderFulfill(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.to = event.params.to
+  entity._orderId = event.params._orderId
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -28,13 +26,11 @@ export function handleCloseStream(event: CloseStreamEvent): void {
   entity.save()
 }
 
-export function handleDeposit(event: DepositEvent): void {
-  let entity = new Deposit(
+export function handleCancelSell(event: CancelSellEvent): void {
+  let entity = new CancelSell(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.sender = event.params.sender
-  entity.amount = event.params.amount
-  entity.balance = event.params.balance
+  entity._orderId = event.params._orderId
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -43,17 +39,13 @@ export function handleDeposit(event: DepositEvent): void {
   entity.save()
 }
 
-export function handleExecuteTransaction(event: ExecuteTransactionEvent): void {
-  let entity = new ExecuteTransaction(
+export function handleCreateBuyOrder(event: CreateBuyOrderEvent): void {
+  let entity = new CreateBuyOrder(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.owner = event.params.owner
-  entity.to = event.params.to
-  entity.value = event.params.value
-  entity.data = event.params.data
-  entity.nonce = event.params.nonce
-  entity.hash = event.params.hash
-  entity.result = event.params.result
+  entity._orderId = event.params._orderId
+  entity._desiredPrice = event.params._desiredPrice
+  entity.who = event.params.who
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -62,13 +54,14 @@ export function handleExecuteTransaction(event: ExecuteTransactionEvent): void {
   entity.save()
 }
 
-export function handleOpenStream(event: OpenStreamEvent): void {
-  let entity = new OpenStream(
+export function handleCreateSellOrder(event: CreateSellOrderEvent): void {
+  let entity = new CreateSellOrder(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.to = event.params.to
-  entity.amount = event.params.amount
-  entity.frequency = event.params.frequency
+  entity._address = event.params._address
+  entity._tokenId = event.params._tokenId
+  entity._desiredPrice = event.params._desiredPrice
+  entity._who = event.params._who
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -77,27 +70,12 @@ export function handleOpenStream(event: OpenStreamEvent): void {
   entity.save()
 }
 
-export function handleOwner(event: OwnerEvent): void {
-  let entity = new Owner(
+export function handleDirectBuy(event: DirectBuyEvent): void {
+  let entity = new DirectBuy(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  entity.owner = event.params.owner
-  entity.added = event.params.added
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleWithdraw(event: WithdrawEvent): void {
-  let entity = new Withdraw(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.to = event.params.to
-  entity.amount = event.params.amount
-  entity.reason = event.params.reason
+  entity._orderId = event.params._orderId
+  entity._who = event.params._who
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
