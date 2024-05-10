@@ -4,14 +4,18 @@ import SellOrderPreview from '../components/SellOrderPreview'
 import BuyOrderPreview from '../components/BuyOrderPreview'
 import Moralis from 'moralis';
 import { useEffect, useId } from 'react';
+import useGetOrders from '../lib/query';
 
-export const MarketAddress = "0xDDa2BF4248fbA74F2effdD64a998d926E5071468"
+// export const MarketAddress = "0xDDa2BF4248fbA74F2effdD64a998d926E5071468"
+export const MarketAddress = "0x0ED71E748c44eF5b14965BA9BfAF2fB640ddA5Fc"
 export const NftAddress = "0x87472da60A48927Db61bbd566d844DF8acD84A0c"
 
 function Entry() {
   const account = useAccount()
-  const od = useId()
+  const orders = useGetOrders()
 
+  console.log(orders.data?.createSellOrders);
+  
   const { data } = useReadContract({
     abi: marketAbi,
     address: MarketAddress,
@@ -27,9 +31,9 @@ function Entry() {
  return (
   <div className='max-w-4xl mx-auto'>
     <div className="w-full text-center text-white mt-20 font-semibold mb-10">SELL ORDERS</div>
-    {data?.length ? data.map(i => <SellOrderPreview key={od} order={i} /> ): <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
+    {data?.length ? <div className='flex flex-wrap gap-4'> {data.map((i, index) => <SellOrderPreview key={index} order={i} />)} </div> : <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
     <div className="w-full text-center text-white mt-20 font-semibold mb-10">Buy ORDERS</div>
-    {buyData?.length ? buyData.map(i => <BuyOrderPreview key={od} order={i} /> ): <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
+    {buyData?.length ? buyData.map((i, index) => <BuyOrderPreview key={index} order={i} /> ): <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
   </div>
  )
 }

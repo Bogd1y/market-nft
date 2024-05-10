@@ -95,10 +95,14 @@ describe("MarketPlace", function () {
       await expect(market.write.createBuyOrder([213n, amount - 150n], {
         account: otherAccount.account,
       })).to.be.rejectedWith("No such in sale")
+      
+      await market.write.deposit({
+        value: 500000000n,
+        account: otherAccount.account
+      })
 
       await expect(market.write.createBuyOrder([order[1], amount - 150n], {
         account: otherAccount.account,
-        value: amount - 150n
       })).to.be.not.rejected
 
     })
@@ -119,11 +123,15 @@ describe("MarketPlace", function () {
       order[4] = order[4].toLowerCase() as `0x${string}`;
       order[5] = order[5].toLowerCase() as `0x${string}`;
 
-      expect(order).to.be.deep.equal([amount, await market.read.nextOrderId() - 1n, 2, tokenId, nft.address, owner.account.address])
+      expect(order).to.be.deep.equal([amount, await market.read.nextOrderId() - 1n, 2, tokenId, nft.address, owner.account.address])  
+
+      await market.write.deposit({
+        value: 500000000n,
+        account: otherAccount.account
+      })
 
       await expect(market.write.createBuyOrder([order[1], amount - 150n], {
         account: otherAccount.account,
-        value: amount - 150n
       })).to.be.not.rejected
 
       await expect(market.write.cancelSell([order[1]], {
@@ -132,6 +140,39 @@ describe("MarketPlace", function () {
 
       await expect(market.write.cancelSell([213n])).to.be.rejectedWith("No such in sale")
       await expect(market.write.cancelSell([order[1]])).to.be.not.rejected
+    })
+    it("Should create sell order and buy order and cencel buy order", async function () {
+      const { owner, otherAccount, publicClient, nft, market } = await deployFixture()
+
+      const amount = 100000n
+      const tokenId = 0n
+
+      await nft.write.approve([market.address, tokenId])
+
+      await market.write.createSellOrder([nft.address, tokenId, amount])
+
+      const order = await market.read.sellOrders([await market.read.nextOrderId() - 1n])
+      
+      order[4] = order[4].toLowerCase() as `0x${string}`;
+      order[5] = order[5].toLowerCase() as `0x${string}`;
+
+      expect(order).to.be.deep.equal([amount, await market.read.nextOrderId() - 1n, 2, tokenId, nft.address, owner.account.address])  
+
+      await market.write.deposit({
+        value: 500000000n,
+        account: otherAccount.account
+      })
+
+      await expect(market.write.createBuyOrder([order[1], amount - 150n], {
+        account: otherAccount.account,
+      })).to.be.not.rejected
+
+      await expect(market.write.cancelBuy([1n])).to.be.rejectedWith("No such in buy")
+      await expect(market.write.cancelBuy([0n])).to.be.rejectedWith("You are not owner")
+
+      await expect(market.write.cancelBuy([0n], {
+        account: otherAccount.account,
+      })).to.be.not.rejected
     })
 
   })
@@ -202,9 +243,22 @@ describe("MarketPlace", function () {
 
       const blOfSellerBefore = await publicClient.getBalance({address: owner.account.address})
 
+      await market.write.deposit({
+        value: 1n,
+        account: otherAccount.account
+      })
+
       await expect(market.write.createBuyOrder([order[1], amount - 150n], {
         account: otherAccount.account,
-        value: amount - 150n
+      })).to.be.rejectedWith("Where is money?")
+
+      await market.write.deposit({
+        value: amount,
+        account: otherAccount.account
+      })
+
+      await expect(market.write.createBuyOrder([order[1], amount - 150n], {
+        account: otherAccount.account,
       })).to.be.not.rejected
 
       const buyOrderId = await market.read.nextBuyOrderId() - 1n
@@ -247,27 +301,32 @@ describe("MarketPlace", function () {
 
       expect(order).to.be.deep.equal([amount, await market.read.nextOrderId() - 1n, 2, tokenId, nft.address, owner.account.address])
 
-      const blOfSellerBefore = await publicClient.getBalance({address: owner.account.address})
-
       const signers = await viem.getWalletClients()
 
       for (const signer of signers) {
 
+        if (signer.account.address == owner.account.address) continue
+
+        await market.write.deposit({
+          value: amount,
+          account: signer.account
+        })  
+
         await expect(market.write.createBuyOrder([order[1], amount - 150n], {
           account: signer.account,
-          value: amount - 150n
         })).to.be.not.rejected
       }
 
       const buyOrderId = await market.read.nextBuyOrderId() - 1n
+
+      const blOfSellerBefore = await publicClient.getBalance({address: owner.account.address})
 
       await expect(market.write.fulfill([buyOrderId])).to.be.not.rejected
 
       const blOfSellerAfter = await publicClient.getBalance({address: owner.account.address})
 
       expect(await market.read.getAllSellOrders()).to.be.at.lengthOf(1)
-      expect(await market.read.getAllBuyOrders()).to.be.at.lengthOf(signers.length)
-      
+      expect(await market.read.getAllBuyOrders()).to.be.at.lengthOf(signers.length - 1)
 
       expect(Number(blOfSellerAfter)).to.be.not.lessThan(Number(blOfSellerBefore))
 
@@ -277,5 +336,28 @@ describe("MarketPlace", function () {
 
     })
   })
+  describe("Balances", async function () {
+    it("Should dep and withdraw", async function () {
+      const { owner, otherAccount, publicClient, nft, market } = await deployFixture()
 
+      const amount = 100000n
+
+      await expect(market.write.deposit({
+        value: amount
+      })).to.be.not.rejected
+
+      expect(await market.read.balances([owner.account.address])).to.be.equal(BigInt(amount))
+
+      await expect(market.write.withdraw([amount + 1n])).to.be.rejectedWith("Balance is smaller");
+
+      const blOfSellerBefore = await publicClient.getBalance({address: owner.account.address})
+
+      await expect(market.write.withdraw([amount])).to.be.not.rejected
+
+      const blOfSellerAfter = await publicClient.getBalance({address: owner.account.address})
+
+      expect(Number(blOfSellerAfter)).to.be.not.lessThan(Number(blOfSellerBefore))
+
+    })
+  })
 })

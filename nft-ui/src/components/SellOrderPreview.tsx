@@ -14,6 +14,13 @@ type orderT = {
   tokenAddress: `0x${string}`;
   orderOwner: `0x${string}`
 }
+// type orderT = {
+//     id: string
+//     blockNumber: string
+//     blockTimestamp: string
+//     _tokenId: string
+//     _address: string
+//   }
 
 const SellOrderPreview = ({order}: {order: orderT}) => {
 

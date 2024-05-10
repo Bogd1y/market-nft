@@ -13,10 +13,11 @@ interface IWETH is IERC20 {
 
 contract Market {
 
-  event CreateSellOrder(address _address, uint256 _tokenId, uint _desiredPrice, address _who);
+  event CreateSellOrder(address _address, uint256 _tokenId, uint _desiredPrice, address _who, uint _orderId);
   event CreateBuyOrder(uint256 _orderId, uint _desiredPrice, address who);
   event DirectBuy(uint256 _orderId, address _who);
   event CancelSell(uint256 _orderId);
+  event CancelBuy(uint256 _orderId);
   event BuyOrderFulfill(uint256 _orderId ); // buyOrderId 
 
   enum Status {
@@ -47,10 +48,11 @@ contract Market {
   mapping (address => bool) blackList;
 
   mapping (uint orderId => Order sellOrder) public sellOrders;
-  mapping (uint sellOrderId => BuyOrder[] buyOrders) buyOrdersBinded; // when user buy directly from offer or fulfill buyOrder -- clear all buyOrders
+  mapping (uint sellOrderId => BuyOrder[] buyOrders) public buyOrdersBinded; // when user buy directly from offer or fulfill buyOrder -- clear all buyOrders
   // buyOrderId => order
   mapping (uint orderId => BuyOrder buyOrder) public buyOrders; // when user buy directly from offer all buy
-  
+  mapping (address => uint) public balances;
+
   uint public nextOrderId = 0;
   uint public nextBuyOrderId = 0;
 
@@ -69,6 +71,15 @@ contract Market {
     blackList[_address] = true;
   }
 
+  function deposit() public payable {
+    balances[msg.sender] += msg.value;
+  }
+  function withdraw(uint amount) public {
+    require(balances[msg.sender] >= amount, "Balance is smaller");
+    balances[msg.sender] -= amount;
+    payable(msg.sender).transfer(amount);
+  }
+
   /// @notice create sell order (need approve for THAT token id)
   function createSellOrder(address _address, uint256 _tokenId, uint _desiredPrice) public {
 
@@ -80,32 +91,36 @@ contract Market {
     require(nft.getApproved(_tokenId) == address(this), "Not approved");
 
     sellOrders[nextOrderId] = Order(_desiredPrice, nextOrderId, Status.pending, _tokenId, _address, msg.sender);
+
+    emit CreateSellOrder(_address, _tokenId, _desiredPrice, msg.sender, nextOrderId);
+
     nextOrderId++;
 
-    emit CreateSellOrder(_address, _tokenId, _desiredPrice, msg.sender);
   }
 
   /// @notice buy buy sellOrder - closes sellOrder AND all buyOrders to that token
   function buy(uint256 _orderId) public payable {
-    require(sellOrders[_orderId].status == Status.pending, "No such in sale");
-    require(msg.value >= sellOrders[_orderId].desiredPrice, "Where is money?");
 
-    IERC721 nft = IERC721(sellOrders[_orderId].tokenAddress);
-    // IWETH weth = IWETH(sellOrders[_orderId].tokenAddress);
+    Order memory currentSellOrder = sellOrders[_orderId];
 
-    payable(nft.ownerOf(sellOrders[_orderId].tokenId)).transfer(sellOrders[_orderId].desiredPrice);
+    require(currentSellOrder.status == Status.pending, "No such in sale");
+    require(msg.value >= currentSellOrder.desiredPrice, "Where is money?");
 
-    nft.transferFrom(nft.ownerOf(sellOrders[_orderId].tokenId), msg.sender, sellOrders[_orderId].tokenId);
-    // weth.transferFrom(msg.sender, nft.ownerOf(sellOrders[_orderId].tokenId), sellOrders[_orderId].desiredPrice);
+    IERC721 nft = IERC721(currentSellOrder.tokenAddress);
 
-    complete(_orderId);
+    payable(nft.ownerOf(currentSellOrder.tokenId)).transfer(currentSellOrder.desiredPrice);
+
+    nft.transferFrom(nft.ownerOf(currentSellOrder.tokenId), msg.sender, currentSellOrder.tokenId);
+
+    // complete(_orderId);
+    sellOrders[_orderId].status = Status.complete;
     emit DirectBuy(_orderId, msg.sender);
   }
 
   /// @notice propose new price to sellOrder
-  function createBuyOrder(uint256 _orderId, uint _desiredPrice) public payable {
+  function createBuyOrder(uint256 _orderId, uint _desiredPrice) public {
     require(sellOrders[_orderId].status == Status.pending, "No such in sale");
-    require(msg.value >= _desiredPrice, "Where is money?");
+    require(balances[msg.sender] >= _desiredPrice, "Where is money?");
 
     buyOrders[nextBuyOrderId] = BuyOrder(_desiredPrice, nextBuyOrderId, Status.pending, sellOrders[_orderId].tokenId, msg.sender, _orderId);
     buyOrdersBinded[_orderId].push(buyOrders[nextBuyOrderId]);
@@ -119,54 +134,71 @@ contract Market {
     require(sellOrders[_orderId].status == Status.pending, "No such in sale");
     require(sellOrders[_orderId].orderOwner == msg.sender, "You are not owner");
 
-    complete(_orderId);
+    sellOrders[_orderId].status == Status.canceled;
     emit CancelSell(_orderId);
+  }
+
+  /// @notice cancel buy order
+  function cancelBuy(uint _orderId) public {
+
+    require(buyOrders[_orderId].status == Status.pending, "No such in buy");
+    require(buyOrders[_orderId].orderOwner == msg.sender, "You are not owner");
+
+    buyOrders[_orderId].status = Status.canceled;
+    emit CancelBuy(_orderId);
   }
 
   /// @notice fulfill buy order
   function fulfill(uint256 _orderId) public {
-    require(buyOrders[_orderId].status == Status.pending, "No such buy order");
+    BuyOrder memory currentBuyOrder = buyOrders[_orderId];
 
-    IERC721 nft = IERC721(sellOrders[buyOrders[_orderId].sellOrderId].tokenAddress);
+    require(currentBuyOrder.status == Status.pending, "No such buy order");
+    require(balances[currentBuyOrder.orderOwner] >= currentBuyOrder.desiredPrice, "Buyer is bomj");
 
-    require(sellOrders[buyOrders[_orderId].sellOrderId].orderOwner == msg.sender, "You are not owner");
+    IERC721 nft = IERC721(sellOrders[currentBuyOrder.sellOrderId].tokenAddress);
 
-    payable(msg.sender).transfer(buyOrders[_orderId].desiredPrice);
+    // require(sellOrders[currentBuyOrder.sellOrderId].orderOwner == msg.sender, "You are not owner");
+    require(nft.ownerOf(currentBuyOrder.tokenId) == msg.sender, "You are not owner");
 
-    nft.transferFrom(msg.sender, buyOrders[_orderId].orderOwner, buyOrders[_orderId].tokenId);
+    payable(msg.sender).transfer(currentBuyOrder.desiredPrice);
+    balances[currentBuyOrder.orderOwner] -= currentBuyOrder.desiredPrice;
 
-    complete(buyOrders[_orderId].sellOrderId, _orderId);
+    nft.transferFrom(msg.sender, currentBuyOrder.orderOwner, currentBuyOrder.tokenId);
+
+    // complete(buyOrders[_orderId].sellOrderId, _orderId);
+    buyOrders[_orderId].status = Status.complete;
+    sellOrders[buyOrders[_orderId].sellOrderId].status == Status.complete;
     emit BuyOrderFulfill(_orderId);
   }
 
-  function complete(uint _orderId) private {
-    if(buyOrdersBinded[_orderId].length == 0) {
-      sellOrders[_orderId].status = Status.complete;
-      return;
-    }
+  // function complete(uint _orderId) private {
+  //   if(buyOrdersBinded[_orderId].length == 0) {
+  //     sellOrders[_orderId].status = Status.complete;
+  //     return;
+  //   }
 
-    for (uint i = 0; i < buyOrdersBinded[_orderId].length; i++) {
-      payable(buyOrdersBinded[_orderId][i].orderOwner).transfer(buyOrdersBinded[_orderId][i].desiredPrice);
-      buyOrdersBinded[_orderId][i].status = Status.canceled;
-    }
-    sellOrders[_orderId].status = Status.complete;
-  }
-  function complete(uint _orderId, uint _buyOrder) private {
-    if(buyOrdersBinded[_orderId].length == 0) {
-      sellOrders[_orderId].status = Status.complete;
-      return;
-    }
+  //   for (uint i = 0; i < buyOrdersBinded[_orderId].length; i++) {
+  //     payable(buyOrdersBinded[_orderId][i].orderOwner).transfer(buyOrdersBinded[_orderId][i].desiredPrice);
+  //     buyOrdersBinded[_orderId][i].status = Status.canceled;
+  //   }
+  //   sellOrders[_orderId].status = Status.complete;
+  // }
+  // function complete(uint _orderId, uint _buyOrder) private {
+  //   if(buyOrdersBinded[_orderId].length == 0) {
+  //     sellOrders[_orderId].status = Status.complete;
+  //     return;
+  //   }
 
-    for (uint i = 0; i < buyOrdersBinded[_orderId].length; i++) {
-      if (_buyOrder == buyOrdersBinded[_orderId][i].orderId) {
-        buyOrdersBinded[_orderId][i].status = Status.complete;
-        continue;
-      }
-      payable(buyOrdersBinded[_orderId][i].orderOwner).transfer(buyOrdersBinded[_orderId][i].desiredPrice);
-      buyOrdersBinded[_orderId][i].status = Status.canceled;
-    }
-    sellOrders[_orderId].status = Status.complete;
-  }
+  //   for (uint i = 0; i < buyOrdersBinded[_orderId].length; i++) {
+  //     if (_buyOrder == buyOrdersBinded[_orderId][i].orderId) {
+  //       buyOrdersBinded[_orderId][i].status = Status.complete;
+  //       continue;
+  //     }
+  //     payable(buyOrdersBinded[_orderId][i].orderOwner).transfer(buyOrdersBinded[_orderId][i].desiredPrice);
+  //     buyOrdersBinded[_orderId][i].status = Status.canceled;
+  //   }
+  //   sellOrders[_orderId].status = Status.complete;
+  // }
 
   function getAllSellOrders() public view returns (Order[] memory) {
     Order[] memory orders = new Order[](nextOrderId);

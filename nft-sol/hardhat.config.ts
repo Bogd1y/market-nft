@@ -20,11 +20,11 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      // chainId: 1337,
-      forking: {
-        url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
-        blockNumber: 5773402
-      }
+      // // chainId: 1337,
+      // forking: {
+      //   url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      //   blockNumber: 5773402
+      // }
     },
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,

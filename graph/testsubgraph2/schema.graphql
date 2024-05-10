@@ -1,0 +1,54 @@
+type BuyOrderFulfill @entity(immutable: true) {
+  id: Bytes!
+  _orderId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CancelBuy @entity(immutable: true) {
+  id: Bytes!
+  _orderId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CancelSell @entity(immutable: true) {
+  id: Bytes!
+  _orderId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CreateBuyOrder @entity(immutable: true) {
+  id: Bytes!
+  _orderId: BigInt! # uint256
+  _desiredPrice: BigInt! # uint256
+  who: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CreateSellOrder @entity(immutable: true) {
+  id: Bytes!
+  _address: Bytes! # address
+  _tokenId: BigInt! # uint256
+  _desiredPrice: BigInt! # uint256
+  _who: Bytes! # address
+  _orderId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DirectBuy @entity(immutable: true) {
+  id: Bytes!
+  _orderId: BigInt! # uint256
+  _who: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
