@@ -31,7 +31,8 @@ interface QueryData {
 }
 
 const fetchData = async (): Promise<QueryData> => {
-  const data = await request("https://api.studio.thegraph.com/query/74495/testsubgraph/v0.0.1", QUERY);
+  // const data = await request("https://api.studio.thegraph.com/query/74495/testsubgraph/v0.0.1", QUERY);
+  const data = await request("https://api.studio.thegraph.com/query/74495/testsubgraph/v0.0.2", QUERY);
   return data as QueryData;
 };
 

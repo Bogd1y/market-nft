@@ -7,6 +7,8 @@ import { BaseError } from 'viem';
 import { nftAbi } from '../types/nftAbi';
 import Moralis from 'moralis';
 import { NftItem } from '../types/moralis';
+import { waitForTransactionReceipt } from 'wagmi/actions';
+import { config } from '../wagmi';
 
 const CreateSellOrder = () => {
 
@@ -55,8 +57,11 @@ const CreateSellOrder = () => {
       },
     })
 
+    await waitForTransactionReceipt(config, {
+      hash: d
+    })
 
-    await writeContractAsync({
+    writeContract({
       abi: marketAbi,
       address: MarketAddress,
       functionName: "createSellOrder",

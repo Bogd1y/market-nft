@@ -1,0 +1,41 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Marketok3
+    network: sepolia
+    source:
+      address: "0x0ED71E748c44eF5b14965BA9BfAF2fB640ddA5Fc"
+      abi: Marketok3
+      startBlock: 5873982
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BuyOrderFulfill
+        - CancelBuy
+        - CancelSell
+        - CreateBuyOrder
+        - CreateSellOrder
+        - DirectBuy
+      abis:
+        - name: Marketok3
+          file: ./abis/Marketok3.json
+      eventHandlers:
+        - event: BuyOrderFulfill(uint256)
+          handler: handleBuyOrderFulfill
+        - event: CancelBuy(uint256)
+          handler: handleCancelBuy
+        - event: CancelSell(uint256)
+          handler: handleCancelSell
+        - event: CreateBuyOrder(uint256,uint256,address)
+          handler: handleCreateBuyOrder
+        - event: CreateSellOrder(address,uint256,uint256,address,uint256)
+          handler: handleCreateSellOrder
+        - event: DirectBuy(uint256,address)
+          handler: handleDirectBuy
+      file: ./src/marketok-3.ts

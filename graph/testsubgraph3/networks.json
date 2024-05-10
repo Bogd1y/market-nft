@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "Marketok3": {
+      "address": "0x0ED71E748c44eF5b14965BA9BfAF2fB640ddA5Fc",
+      "startBlock": 5873982
+    }
+  }
+}
