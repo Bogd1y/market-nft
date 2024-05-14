@@ -14,7 +14,7 @@ const Header = () => {
     abi: marketAbi,
     address: MarketAddress,
     functionName: "balances",
-    args: [account?.address]
+    args: [account?.address || "0x0"]
   })
 
   const handleDep = () => {
@@ -52,6 +52,9 @@ const Header = () => {
           </li>
           <li className="inline-block w-fit">
             <a href="/mintNft">Mint nft </a>
+          </li>
+          <li className="inline-block w-fit">
+            <a href="/proposes">Proposes </a>
           </li>
           <li className="w-fit flex gap-5">
             <div onClick={handleDep} className="cursor-pointer">Dep</div>

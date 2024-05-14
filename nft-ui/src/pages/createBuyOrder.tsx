@@ -33,7 +33,7 @@ const CreateBuyOrder = () => {
       address: MarketAddress,
       functionName: "createBuyOrder",
       args: [BigInt(formData.orderId), BigInt(formData.desiredPrice)],
-      value: BigInt(formData.desiredPrice)
+      // value: BigInt(formData.desiredPrice)
     }, {
       onError: (error) => {
         console.error(error.message);

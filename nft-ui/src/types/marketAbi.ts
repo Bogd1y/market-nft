@@ -220,11 +220,11 @@ export const marketAbi = [
         "name": "sellOrderId",
         "type": "uint256"
       },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+      // {
+      //   "internalType": "uint256",
+      //   "name": "",
+      //   "type": "uint256"
+      // }
     ],
     "name": "buyOrdersBinded",
     "outputs": [

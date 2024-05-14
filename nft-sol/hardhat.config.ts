@@ -4,7 +4,6 @@ import "@nomicfoundation/hardhat-toolbox-viem";
 const INFURA_API_KEY = vars.get("INFURA_API_KEY");
 const SEPOLIA_PRIVATE_KEY = vars.get("SEPOLIA_PRIVATE_KEY");
 
-
 const config: HardhatUserConfig = {
   solidity:{
     version: "0.8.24",
@@ -18,6 +17,11 @@ const config: HardhatUserConfig = {
   mocha: {
     timeout: 600000
   },
+  // ignition: {
+  //   // gasLimit: 5000000, // Increase gas limit globally
+  //   // // or
+  // },
+  //   // disableGasEstimation: true, // Disable gas estimation globally
   networks: {
     hardhat: {
       // // chainId: 1337,

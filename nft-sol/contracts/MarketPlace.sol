@@ -124,8 +124,9 @@ contract Market {
 
     buyOrders[nextBuyOrderId] = BuyOrder(_desiredPrice, nextBuyOrderId, Status.pending, sellOrders[_orderId].tokenId, msg.sender, _orderId);
     buyOrdersBinded[_orderId].push(buyOrders[nextBuyOrderId]);
+
+    emit CreateBuyOrder(nextBuyOrderId, _desiredPrice, msg.sender);
     nextBuyOrderId++;
-    emit CreateBuyOrder(_orderId, _desiredPrice, msg.sender);
   }
 
   /// @notice cancel sell order
@@ -167,7 +168,7 @@ contract Market {
 
     // complete(buyOrders[_orderId].sellOrderId, _orderId);
     buyOrders[_orderId].status = Status.complete;
-    sellOrders[buyOrders[_orderId].sellOrderId].status == Status.complete;
+    sellOrders[buyOrders[_orderId].sellOrderId].status = Status.complete;
     emit BuyOrderFulfill(_orderId);
   }
 

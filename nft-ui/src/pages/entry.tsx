@@ -1,20 +1,18 @@
-import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi'
+import { useAccount, useReadContract } from 'wagmi'
 import { marketAbi } from '../types/marketAbi'
-import SellOrderPreview from '../components/SellOrderPreview'
-import BuyOrderPreview from '../components/BuyOrderPreview'
-import Moralis from 'moralis';
-import { useEffect, useId } from 'react';
 import useGetOrders from '../lib/query';
+import SellOrderPreviewG from '../components/SellOrderPreviewG';
 
-// export const MarketAddress = "0xDDa2BF4248fbA74F2effdD64a998d926E5071468"
-export const MarketAddress = "0x0ED71E748c44eF5b14965BA9BfAF2fB640ddA5Fc"
+// export const MarketAddress = "0xDDa2BF4248fbA74F2effdD64a998d926E5071468" // deprectd
+// export const MarketAddress = "0x0ED71E748c44eF5b14965BA9BfAF2fB640ddA5Fc" // depre
+export const MarketAddress = "0x632D50611CFde37c2f07D7DF676AD4643804887c"
 export const NftAddress = "0x87472da60A48927Db61bbd566d844DF8acD84A0c"
 
 function Entry() {
   const account = useAccount()
   const orders = useGetOrders()
 
-  console.log(orders.data?.createSellOrders);
+  console.log("GRAPH QL", orders.data?.createSellOrders);
   
   const { data } = useReadContract({
     abi: marketAbi,
@@ -30,49 +28,15 @@ function Entry() {
 
  return (
   <div className='max-w-4xl mx-auto'>
-    <div className="w-full text-center text-white mt-20 font-semibold mb-10">SELL ORDERS</div>
-    {data?.length ? <div className='flex flex-wrap gap-4'> {data.map((i, index) => <SellOrderPreview key={index} order={i} />)} </div> : <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
-    <div className="w-full text-center text-white mt-20 font-semibold mb-10">Buy ORDERS</div>
-    {buyData?.length ? buyData.map((i, index) => <BuyOrderPreview key={index} order={i} /> ): <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
+    {/* <div className="w-full text-center text-white mt-20 font-semibold mb-10">SELL ORDERS</div>
+    {data?.length ? <div className='flex flex-wrap gap-4'> {data.filter(d => d.status == 2).map((i, index) => <SellOrderPreview key={index} order={i} />)} </div> : <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>} */}
+    <div className="w-full text-center text-white mt-10 font-semibold mb-10">SELL ORDERS G</div>
+    {orders.data?.createSellOrders?.length ? <div className='flex flex-wrap gap-4 mb-10'> {orders.data?.createSellOrders.map((i, index) => <SellOrderPreviewG key={index} order={i} />)} </div> : <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>}
+    {/* <div className="w-full text-center text-white mt-20 font-semibold mb-10">Buy ORDERS</div>
+    {buyData?.length ? buyData.map((i, index) => <BuyOrderPreview key={index} order={i} /> ): <div className='w-full text-center text-white mt-20 font-semibold mb-10'>NO ORDERS YET</div>} */}
+
   </div>
  )
 }
 
 export default Entry
-
-// return (
-//   <>
-//     <div>
-//       <h2>Account</h2>
-
-//       <div>
-//         status: {account.status}
-//         <br />
-//         addresses: {JSON.stringify(account.addresses)}
-//         <br />
-//         chainId: {account.chainId}
-//       </div>
-
-//       {account.status === 'connected' && (
-//         <button type="button" onClick={() => disconnect()}>
-//           Disconnect
-//         </button>
-//       )}
-//     </div>
-
-//     <div>
-//       <h2>Connect</h2>
-//       {connectors.map((connector) => (
-//         <button
-//           key={connector.uid}
-//           onClick={() => connect({ connector })}
-//           type="button"
-//         >
-//           {connector.name}
-//         </button>
-//       ))}
-//       <div>{status}</div>
-//       <div>{error?.message}</div>
-//     </div>
-//   </>
-// )

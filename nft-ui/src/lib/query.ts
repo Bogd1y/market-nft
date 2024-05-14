@@ -9,8 +9,10 @@ const QUERY = gql`
       blockTimestamp
       _tokenId
       _address
+      _orderId
+      _who
     }
-    cancelSells(first: 5) {
+    createBuyOrders(first: 5) {
       id
       _orderId
       blockNumber
@@ -19,20 +21,27 @@ const QUERY = gql`
   }
 `;
 
-interface QueryData {
+export interface QueryData {
   createSellOrders: {
     id: string
     blockNumber: string
     blockTimestamp: string
     _tokenId: string
     _address: string
-
+    _orderId: string
+    _who: string
+  }[];
+  createBuyOrders: {
+    id: string
+    _orderId: string
+    blockNumber: string
+    blockTimestamp: string
   }[];
 }
 
 const fetchData = async (): Promise<QueryData> => {
   // const data = await request("https://api.studio.thegraph.com/query/74495/testsubgraph/v0.0.1", QUERY);
-  const data = await request("https://api.studio.thegraph.com/query/74495/testsubgraph/v0.0.2", QUERY);
+  const data = await request("https://api.studio.thegraph.com/query/74495/testsubgraph/v0.0.5", QUERY);
   return data as QueryData;
 };
 

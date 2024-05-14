@@ -61,6 +61,7 @@ const SellOrderPreview = ({order}: {order: orderT}) => {
       <div className="text-center">{Number(order.tokenId)} : <span className='text-bluish font-medium'>{Number(order?.desiredPrice)}</span> WEI </div>
       <img src={imgB64} alt="iamge" className='' />
       <div className="flex">
+        {/* {order.status} */}
         <button onClick={handleBuy} className="w-2/4 text-center py-1 bg-bluish rounded-bl">Buy</button>
         <button onClick={handleNavigate} className="w-2/4 text-center py-1 ">Order</button>
       </div>

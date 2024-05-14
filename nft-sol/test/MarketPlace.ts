@@ -340,7 +340,7 @@ describe("MarketPlace", function () {
     it("Should dep and withdraw", async function () {
       const { owner, otherAccount, publicClient, nft, market } = await deployFixture()
 
-      const amount = 100000n
+      const amount = 100000000000000n
 
       await expect(market.write.deposit({
         value: amount
